@@ -1,0 +1,93 @@
+"""
+    PYTHON APP(/SCRIPT) TO CALCULATE PERFORMANCES HOURLY AND STORE DATA IN
+    MYSQL DATABASE
+"""
+
+import time
+from datetime import datetime
+from mysql.connector import connect, Error
+
+
+triggers = {
+    "08:00": {"start": "07:00:00", "end": "07:59:59", "work_time": "60"},
+    "09:00": {"start": "08:00:00", "end": "08:59:59", "work_time": "60"},
+    "10:00": {"start": "09:00:00", "end": "09:59:59", "work_time": "60"},
+    "11:00": {"start": "10:00:00", "end": "10:59:59", "work_time": "60"},
+    "12:00": {"start": "11:00:00", "end": "11:59:59", "work_time": "60"},
+    "13:00": {"start": "12:00:00", "end": "12:59:59", "work_time": "60"},  # TEST
+    # PAUSE
+    "14:00": {"start": "13:00:00", "end": "13:59:59", "work_time": "60"},
+    "15:00": {"start": "14:00:00", "end": "14:59:59", "work_time": "60"},
+    "16:00": {"start": "15:00:00", "end": "15:59:59", "work_time": "60"},
+    "17:00": {"start": "16:00:00", "end": "17:00:00", "work_time": "60"},
+}
+
+
+def main():
+    """ MAIN FUNCTION: FOR LOCAL SCOPING """
+
+    try:
+        with connect(
+            host="localhost",
+            user="root",  # ETC
+            password="",  # SmarTex2021
+            database="db_etc",
+        ) as connection:
+            print("Connection to DB succeeded!")
+
+            while True:
+                now = datetime.now()
+                cur_day = now.strftime("%d/%m/%Y")
+                # cur_time = now.strftime("%H:%M:%S")
+                cur_time = now.strftime("%H:%M")
+
+                if cur_time in triggers:
+                    select_query = """
+                        SELECT
+                            registration_number,
+                            Firstname,
+                            Lastname,
+                            ROUND(SUM((quantity * tps_ope_uni)) / """ + triggers[cur_time]["work_time"] + """, 2) AS performance
+                        FROM
+                            `pack_operation`
+                        WHERE
+                            cur_day = '""" + cur_day + """' AND cur_time BETWEEN '""" + triggers[cur_time]["start"] + """' AND '""" + triggers[cur_time]["end"] + """'
+                        GROUP BY
+                            registration_number;
+                    """
+                    insert_query = """
+                        INSERT INTO performance_per_hour
+                        (registration_number, first_name,
+                        last_name, performance, cur_day, cur_time)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """
+
+                    with connection.cursor() as cursor:
+
+                        cursor.execute(select_query)
+                        results = cursor.fetchall()
+
+                        print(results)
+
+                        if len(results) > 0:
+                            insert_records = [
+                                (result[0], result[1], result[2],
+                                 result[3], cur_day, cur_time,)
+                                for result in results
+                            ]
+                            cursor.executemany(insert_query, insert_records)
+                            connection.commit()
+
+                # SLEEP FOR 1 MINUTE
+                print(cur_day, cur_time)
+                time.sleep(60)
+
+    except Error as err_msg:
+        print(err_msg)
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('Keyboard Interrupted')
