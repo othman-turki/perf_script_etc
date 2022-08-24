@@ -1,6 +1,6 @@
 """
-    PYTHON APP(/SCRIPT) TO CALCULATE PERFORMANCES HOURLY AND STORE DATA IN
-    MYSQL DATABASE
+    PYTHON APP(/SCRIPT) TO CALCULATE PERFORMANCES HOURLY AND STORE DATA
+    IN MYSQL DATABASE
 """
 
 import time
@@ -14,7 +14,7 @@ triggers = {
     "10:00": {"start": "09:00:00", "end": "09:59:59", "work_time": "60"},
     "11:00": {"start": "10:00:00", "end": "10:59:59", "work_time": "60"},
     "12:00": {"start": "11:00:00", "end": "11:59:59", "work_time": "60"},
-    "13:00": {"start": "12:00:00", "end": "12:59:59", "work_time": "60"},  # TEST
+    # "13:00": {"start": "12:00:00", "end": "12:59:59", "work_time": "60"},  # TEST
     # PAUSE
     "14:00": {"start": "13:00:00", "end": "13:59:59", "work_time": "60"},
     "15:00": {"start": "14:00:00", "end": "14:59:59", "work_time": "60"},
