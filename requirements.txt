@@ -10,7 +10,10 @@ platformdirs==2.5.2
 protobuf==3.20.1
 pycodestyle==2.8.0
 pylint==2.14.5
+pythonw==3.0.3
+pywin32==304
 toml==0.10.2
 tomli==2.0.1
 tomlkit==0.11.1
+WMI==1.5.1
 wrapt==1.14.1

@@ -4,9 +4,12 @@
 """
 
 import time
+import logging
 from datetime import datetime
 from mysql.connector import connect, Error
 
+logging.basicConfig(filename="log.txt", level=logging.DEBUG,
+                    format="%(asctime)s %(message)s")
 
 triggers = {
     "08:00": {"start": "07:00:00", "end": "07:59:59", "work_time": "60"},
@@ -25,6 +28,7 @@ triggers = {
 
 def main():
     """ MAIN FUNCTION: FOR LOCAL SCOPING """
+    logging.info("Program Started")
 
     try:
         with connect(
@@ -63,11 +67,10 @@ def main():
                     """
 
                     with connection.cursor() as cursor:
-
                         cursor.execute(select_query)
                         results = cursor.fetchall()
 
-                        print(results)
+                        # print(results)
 
                         if len(results) > 0:
                             insert_records = [
@@ -78,16 +81,23 @@ def main():
                             cursor.executemany(insert_query, insert_records)
                             connection.commit()
 
-                # SLEEP FOR 1 MINUTE
-                print(cur_day, cur_time)
+                            logging.info(
+                                "Performance of operators calculated successfully")
+
+                # print(cur_day, cur_time)
                 time.sleep(60)
 
-    except Error as err_msg:
-        print(err_msg)
+    except Error as msg_err:
+        logging.error("DB Error: %s", msg_err)
 
 
 if __name__ == '__main__':
     try:
         main()
+
     except KeyboardInterrupt:
-        print('Keyboard Interrupted')
+        logging.error("Keyboard Interrupt")
+
+    except Exception as err:
+        logging.error("Crashing Error: %s", err)
+        logging.error("Error Type: %s", type(err).__name__)

@@ -1,0 +1,2 @@
+2022-08-26 11:44:44,070 Program Started
+2022-08-26 12:00:44,247 Performance of operators calculated successfully
