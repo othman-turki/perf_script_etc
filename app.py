@@ -12,16 +12,16 @@ logging.basicConfig(filename="log.txt", level=logging.DEBUG,
                     format="%(asctime)s %(message)s")
 
 triggers = {
-    "08:30": {"start": "07:30:00", "end": "08:29:59", "work_time": "60"},
-    "09:30": {"start": "08:30:00", "end": "09:29:59", "work_time": "60"},
-    "10:30": {"start": "09:30:00", "end": "10:29:59", "work_time": "60"},
-    "11:30": {"start": "10:30:00", "end": "11:29:59", "work_time": "60"},
-    "12:30": {"start": "11:30:00", "end": "12:29:59", "work_time": "60"},
-    "13:30": {"start": "12:30:00", "end": "13:29:59", "work_time": "60"},
-    "14:30": {"start": "13:30:00", "end": "14:30:00", "work_time": "60"},
-    # "15:30": {"start": "14:00:00", "end": "14:59:59", "work_time": "60"},
-    # "16:30": {"start": "15:00:00", "end": "15:59:59", "work_time": "60"},
-    # "17:30": {"start": "16:00:00", "end": "17:00:00", "work_time": "60"},
+    "08:00": {"start": "07:00:00", "end": "07:59:59", "work_time": "60"},
+    "09:00": {"start": "08:00:00", "end": "08:59:59", "work_time": "60"},
+    "10:00": {"start": "09:00:00", "end": "09:59:59", "work_time": "60"},
+    "11:00": {"start": "10:00:00", "end": "10:59:59", "work_time": "60"},
+    "12:00": {"start": "11:00:00", "end": "11:59:59", "work_time": "60"},
+    # "13:00": {"start": "12:00:00", "end": "12:59:59", "work_time": "60"},
+    "14:00": {"start": "13:00:00", "end": "13:59:59", "work_time": "60"},
+    "15:00": {"start": "14:00:00", "end": "14:59:59", "work_time": "60"},
+    "16:00": {"start": "15:00:00", "end": "15:59:59", "work_time": "60"},
+    "17:00": {"start": "16:00:00", "end": "17:00:00", "work_time": "60"},
 }
 
 
@@ -29,22 +29,20 @@ def main():
     """ MAIN FUNCTION: FOR LOCAL SCOPING """
     logging.info("Program Started")
 
-    try:
-        with connect(
-            host="localhost",
-            user="root",  # ETC
-            password="",  # SmarTex2021
-            database="db_etc",
-        ) as connection:
-            print("Connection to DB succeeded!")
+    while True:
+        now = datetime.now()
+        cur_day = now.strftime("%d/%m/%Y")
+        cur_time = now.strftime("%H:%M")
 
-            while True:
-                now = datetime.now()
-                cur_day = now.strftime("%d/%m/%Y")
-                # cur_time = now.strftime("%H:%M:%S")
-                cur_time = now.strftime("%H:%M")
-
-                if cur_time in triggers:
+        if cur_time in triggers:
+            try:
+                with connect(
+                    host="localhost",
+                    user="root",  # ETC
+                    password="",  # SmarTex2021
+                    database="db_etc",
+                ) as conn:
+                    print("Connection to DB succeeded!")
                     select_query = """
                         SELECT
                             registration_number,
@@ -65,11 +63,9 @@ def main():
                         VALUES (%s, %s, %s, %s, %s, %s)
                     """
 
-                    with connection.cursor() as cursor:
+                    with conn.cursor() as cursor:
                         cursor.execute(select_query)
                         results = cursor.fetchall()
-
-                        # print(results)
 
                         if len(results) > 0:
                             insert_records = [
@@ -78,7 +74,8 @@ def main():
                                 for result in results
                             ]
                             cursor.executemany(insert_query, insert_records)
-                            connection.commit()
+                            conn.commit()
+                            conn.close()
 
                             logging.info(
                                 "Performance of operators calculated successfully")
@@ -87,11 +84,11 @@ def main():
                             logging.info(
                                 "No Performance of operators exist")
 
-                # print(cur_day, cur_time)
-                time.sleep(60)
+            except Error as msg_err:
+                logging.error("DB Error: %s", msg_err)
 
-    except Error as msg_err:
-        logging.error("DB Error: %s", msg_err)
+        print(cur_day, cur_time)
+        time.sleep(60)
 
 
 if __name__ == '__main__':
